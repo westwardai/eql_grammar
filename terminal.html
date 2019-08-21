@@ -1,0 +1,167 @@
+<!doctype html>
+	<html>
+		<head>
+			<link rel="stylesheet" type="text/css" href="stylesheet.css">
+			<script src="lib/require.js" type="text/javascript"> </script>
+		</head>
+		<body>
+			<form autocomplete="off" action="/submit_query">
+				<div class="autocomplete" style="width:300px;">
+					<input type="text" id="terminal" onkeyup="keyupFunction()" placeholder="EQL query...">
+				</div>
+				<input type="submit">
+			</form>
+			<script>
+				var antlr4 = require('antlr4/index');
+				var EQLLexer = require('EQLLexer').EQLLexer;
+				var EQLParser = require('EQLParser').EQLParser;
+				var EQLListener = require('EQLListener').EQLListener;
+				var ErrorListener = require('antlr4/error/ErrorListener').ErrorListener;
+				var our_suggestions = [];
+
+				function autocomplete(inp) {
+					console.log("autocomplete called with our_suggestions: " + our_suggestions);
+					var currentFocus;
+					inp.addEventListener("input", function(e) {
+						var a, b, i, val = this.value;
+						closeAllLists();
+						if (!val) { return false; }
+						currentFocus = - 1;
+						
+						a = document.createElement("DIV");
+						a.setAttribute("id", this.id + "autocomplete-list");
+						a.setAttribute("class", "autocomplete-items");
+						
+						this.parentNode.appendChild(a);
+						
+						for (var i = 0; i < our_suggestions.length; i++) {
+							b = document.createElement("DIV");
+							b.innerHTML = "<strong>" + our_suggestions[i].substr(0, val.length) + "</strong>";
+							b.innerHTML += our_suggestions[i].substr(val.length);
+							b.innerHTML += "<input type='hidden' value='" + our_suggestions[i] + "'>";
+							b.innerHTML += '<span class="tooltiptext">Some documentation</span>';
+							b.addEventListener("click", function(e) {
+								var tmp = inp.value.slice(0, inp.value.lastIndexOf(" ")+1);
+								inp.value = tmp + this.getElementsByTagName("input")[0].value + " ";
+								closeAllLists();
+							});
+							a.appendChild(b);
+						}
+					});
+					
+					inp.addEventListener("keydown", function(e) {
+						var x = document.getElementById(this.id + "autocomplete-list");
+						if (x) x = x.getElementsByTagName("div");
+						if (e.keyCode == 40) {
+							/* down key */
+							currentFocus++;
+							addActive(x);
+						} else if (e.keyCode == 38) {
+							/* up key */ 
+							currentFocus--;
+							addActive(x);
+						} else if (e.keyCode == 13 || e.keyCode == 9) {
+							/* enter key or tab just autocomplete */
+							e.preventDefault();
+							if (currentFocus > -1) {
+								if (x) x[currentFocus].click();
+							}
+						}
+					});
+					
+					function addActive(x) {
+						if (!x) return false;
+						removeActive(x);
+						if (currentFocus >= x.length) currentFocus = 0;
+						if (currentFocus < 0) currentFocus (x.length - 1);
+						x[currentFocus].classList.add("autocomplete-active");
+					}
+					
+					function removeActive(x) {
+						for (var i = 0; i < x.length; i++) {
+							x[i].classList.remove("autocomplete-active");
+						}
+					}
+					
+					function closeAllLists(elmnt) {
+						var x = document.getElementsByClassName("autocomplete-items");
+						for (var i = 0; i < x.length; i++) {
+							if (elmnt != x[i] && elmnt != inp) {	
+								x[i].parentNode.removeChild(x[i]);
+							}
+						}
+					}
+				
+					document.addEventListener("click", function (e) {
+						closeAllLists(e.target);
+					});
+				}
+				
+				
+
+
+				function keyupFunction() {
+					var input;
+					our_suggestions = [];
+					input = document.getElementById("terminal").value;
+
+					var chars = new antlr4.InputStream(input);
+					var lexer = new EQLLexer(chars);
+					var tokens = new antlr4.CommonTokenStream(lexer)
+					var parser = new EQLParser(tokens);
+				
+					var EQLGrammarErrorListener = function(errors) {
+						antlr4.error.ErrorListener.call(this);
+						return this;
+					}
+
+					//EQLGrammarErrorListener.prototype = Object.create(ErrorListener.prototype);
+					//EQLGrammarErrorListener.prototype.constructor = EQLGrammarErrorListener;
+					EQLGrammarErrorListener.prototype = Object.create(antlr4.error.ErrorListener.prototype);
+					EQLGrammarErrorListener.constructor = EQLGrammarErrorListener;
+					EQLGrammarErrorListener.prototype.syntaxError = function(rec, sym, line, col, msg, e) {
+						console.log("errfunc: " + rec);
+						var parser = rec._ctx.parser;
+						var tokens = parser.getTokenStream().tokens;
+						var tokenText;
+						if (tokens.length > 1) {
+							var lastToken = tokens[tokens.length - 2];
+							tokenText = lastToken.text;
+						}
+						
+						var open_bracket_index = msg.indexOf("{")+1;
+						var close_bracket_index = msg.indexOf("}");
+						
+						var suggestions = msg.slice(open_bracket_index, close_bracket_index)
+							.replace(/\'/g, '')
+							.replace(/\s/g, '')
+							.split(",")
+							.filter(function(possible_suggestion) {
+								return possible_suggestion.startsWith(tokenText);
+							});
+						console.log("my suggestions " + suggestions);
+						our_suggestions = our_suggestions.concat(suggestions);
+					}
+					
+					
+					
+					var errors = [];
+					
+					var listener = new EQLGrammarErrorListener(errors);
+					parser.addErrorListener(listener);
+					
+					parser.buildParseTrees = true;
+					var tree = parser.event_query();
+					
+					const autosuggest = require('antlr4-autosuggest-js/autosuggest');
+					const autosuggester = autosuggest.autosuggester(EQLLexer, EQLParser, 'LOWER');
+					
+					
+					let suggestions = autosuggester.autosuggest(input);
+					our_suggestions = our_suggestions.concat(suggestions);
+					console.log("suggestions: " + suggestions);
+				}
+				autocomplete(document.getElementById("terminal"));
+			</script>
+		</body>
+	</html>

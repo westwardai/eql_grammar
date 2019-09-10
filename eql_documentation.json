@@ -1,0 +1,10 @@
+{
+	"process": {
+		"text": "process query",
+		"example": "process where true"
+	},
+	"where": {
+		"text": "The `where` statement is used to specify what criteria this query matches",
+		"example": "process where true"
+	}
+}

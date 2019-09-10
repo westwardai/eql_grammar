@@ -7,15 +7,25 @@ import org.antlr.v4.runtime.tree.ParseTreeListener;
  */
 public interface EQLListener extends ParseTreeListener {
 	/**
-	 * Enter a parse tree produced by {@link EQLParser#base_query}.
+	 * Enter a parse tree produced by {@link EQLParser#eql_query}.
 	 * @param ctx the parse tree
 	 */
-	void enterBase_query(EQLParser.Base_queryContext ctx);
+	void enterEql_query(EQLParser.Eql_queryContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link EQLParser#base_query}.
+	 * Exit a parse tree produced by {@link EQLParser#eql_query}.
 	 * @param ctx the parse tree
 	 */
-	void exitBase_query(EQLParser.Base_queryContext ctx);
+	void exitEql_query(EQLParser.Eql_queryContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EQLParser#pipe_command}.
+	 * @param ctx the parse tree
+	 */
+	void enterPipe_command(EQLParser.Pipe_commandContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EQLParser#pipe_command}.
+	 * @param ctx the parse tree
+	 */
+	void exitPipe_command(EQLParser.Pipe_commandContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link EQLParser#sequence}.
 	 * @param ctx the parse tree
@@ -27,6 +37,76 @@ public interface EQLListener extends ParseTreeListener {
 	 */
 	void exitSequence(EQLParser.SequenceContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link EQLParser#by_values}.
+	 * @param ctx the parse tree
+	 */
+	void enterBy_values(EQLParser.By_valuesContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EQLParser#by_values}.
+	 * @param ctx the parse tree
+	 */
+	void exitBy_values(EQLParser.By_valuesContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EQLParser#named_params}.
+	 * @param ctx the parse tree
+	 */
+	void enterNamed_params(EQLParser.Named_paramsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EQLParser#named_params}.
+	 * @param ctx the parse tree
+	 */
+	void exitNamed_params(EQLParser.Named_paramsContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EQLParser#named_param}.
+	 * @param ctx the parse tree
+	 */
+	void enterNamed_param(EQLParser.Named_paramContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EQLParser#named_param}.
+	 * @param ctx the parse tree
+	 */
+	void exitNamed_param(EQLParser.Named_paramContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EQLParser#time_unit}.
+	 * @param ctx the parse tree
+	 */
+	void enterTime_unit(EQLParser.Time_unitContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EQLParser#time_unit}.
+	 * @param ctx the parse tree
+	 */
+	void exitTime_unit(EQLParser.Time_unitContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EQLParser#expressions}.
+	 * @param ctx the parse tree
+	 */
+	void enterExpressions(EQLParser.ExpressionsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EQLParser#expressions}.
+	 * @param ctx the parse tree
+	 */
+	void exitExpressions(EQLParser.ExpressionsContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EQLParser#argument}.
+	 * @param ctx the parse tree
+	 */
+	void enterArgument(EQLParser.ArgumentContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EQLParser#argument}.
+	 * @param ctx the parse tree
+	 */
+	void exitArgument(EQLParser.ArgumentContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EQLParser#until_clause}.
+	 * @param ctx the parse tree
+	 */
+	void enterUntil_clause(EQLParser.Until_clauseContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EQLParser#until_clause}.
+	 * @param ctx the parse tree
+	 */
+	void exitUntil_clause(EQLParser.Until_clauseContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link EQLParser#event_query}.
 	 * @param ctx the parse tree
 	 */
@@ -37,6 +117,26 @@ public interface EQLListener extends ParseTreeListener {
 	 */
 	void exitEvent_query(EQLParser.Event_queryContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link EQLParser#subquery_by}.
+	 * @param ctx the parse tree
+	 */
+	void enterSubquery_by(EQLParser.Subquery_byContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EQLParser#subquery_by}.
+	 * @param ctx the parse tree
+	 */
+	void exitSubquery_by(EQLParser.Subquery_byContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EQLParser#subquery}.
+	 * @param ctx the parse tree
+	 */
+	void enterSubquery(EQLParser.SubqueryContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EQLParser#subquery}.
+	 * @param ctx the parse tree
+	 */
+	void exitSubquery(EQLParser.SubqueryContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link EQLParser#join}.
 	 * @param ctx the parse tree
 	 */
@@ -46,6 +146,16 @@ public interface EQLListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitJoin(EQLParser.JoinContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EQLParser#where}.
+	 * @param ctx the parse tree
+	 */
+	void enterWhere(EQLParser.WhereContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EQLParser#where}.
+	 * @param ctx the parse tree
+	 */
+	void exitWhere(EQLParser.WhereContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link EQLParser#event_type}.
 	 * @param ctx the parse tree
@@ -206,16 +316,6 @@ public interface EQLListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitNamed_subquery(EQLParser.Named_subqueryContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link EQLParser#subquery}.
-	 * @param ctx the parse tree
-	 */
-	void enterSubquery(EQLParser.SubqueryContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link EQLParser#subquery}.
-	 * @param ctx the parse tree
-	 */
-	void exitSubquery(EQLParser.SubqueryContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link EQLParser#check_paren}.
 	 * @param ctx the parse tree

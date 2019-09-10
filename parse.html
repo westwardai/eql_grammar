@@ -1,0 +1,282 @@
+<!doctype html>
+	<html>
+		<head>
+			<link rel="stylesheet" type="text/css" href="parse.css">
+			<script src="lib/require.js" type="text/javascript"> </script>
+		</head>
+		<body>
+			<form autocomplete="off">
+				<div class="container">
+					
+					<div class="backdrop">
+						<div class="highlights" id="highlights"></div>
+					</div>
+					<div class="autocomplete" style="width:300px;">
+						<textarea placeholder="EQL query..." id="terminal" autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" oninput="handleInput()"></textarea>
+					</div>
+				</div>
+			</form>
+
+			<script>	
+				
+				let enableSyntaxHighlighting = true;
+
+				// Load JSON text from server hosted file and return JSON parsed object
+				function loadJSON(filePath) {
+				  // Load json file;
+				  var json = loadTextFileAjaxSync(filePath, "application/json");
+				  // Parse json
+				  return JSON.parse(json);
+				}   
+
+				// Load text with Ajax synchronously: takes path to file and optional MIME type
+				function loadTextFileAjaxSync(filePath, mimeType)
+				{
+				  var xmlhttp=new XMLHttpRequest();
+				  xmlhttp.open("GET",filePath,false);
+				  if (mimeType != null) {
+					if (xmlhttp.overrideMimeType) {
+					  xmlhttp.overrideMimeType(mimeType);
+					}
+				  }
+				  xmlhttp.send();
+				  if (xmlhttp.status==200)
+				  {
+					return xmlhttp.responseText;
+				  }
+				  else {
+					// TODO Throw exception
+					return null;
+				  }
+				}
+				//console.log("json: " + JSON.stringify(loadJSON("eql_documentation.json"), null, 2));
+				let documentation = loadJSON("eql_documentation.json");
+				function lookupDocumentation(tokenText) {
+					console.log("lookupDocumentation tokenText: " + tokenText);
+					if (tokenText in documentation) {
+						return documentation[tokenText].text;
+					}
+					return "Documentation has not been filled in yet.";
+				}
+				console.log("documentation: " + JSON.stringify(documentation, null, 2));
+				//console.log("documentation: " + documentation);
+				//let input = 'process where "abc" == "abc"';
+				
+				function diagnoseCtx(ctx) {
+					console.log(Object.keys(ctx));
+					if (typeof ctx.children === 'undefined') {
+						console.log("where children undefined");
+					}
+					if (Array.isArray(ctx.children) === true) {
+						console.log("ctx.children is an array with " + ctx.children.length + " children");
+						ctx.children.forEach(function(item) {
+							//console.log("item text: " + typeof(item));
+							console.log("symbol text: " + item.getText());
+						});
+					}
+					else {
+						console.log("ctx.children is not an array");
+					}
+				}
+
+				function addActive(x) {
+					if (!x) return false;
+					removeActive(x);
+					if (currentFocus >= x.length) currentFocus = 0;
+					if (currentFocus < 0) currentFocus = (x.length - 1);
+					/*console.log("x length: " + x.length);
+					console.log("currentFocus: " + currentFocus);
+					console.log("type x[currentFocus]: " + x[currentFocus]);*/
+					x[currentFocus].classList.add("autocomplete-active");
+				}
+				
+				function removeActive(x) {
+					for (var i = 0; i < x.length; i++) {
+						x[i].classList.remove("autocomplete-active");
+					}
+				}
+				
+				function closeAllLists(elmnt) {
+					let terminal = document.getElementById("terminal");
+					var x = document.getElementsByClassName("autocomplete-items");
+					for (var i = 0; i < x.length; i++) {
+						if (elmnt != x[i] && elmnt != terminal) {
+							x[i].parentNode.removeChild(x[i]);
+						}
+					}
+				}				
+
+				let antlr4 = require('antlr4/index');
+				let EQLLexer = require('EQLLexer').EQLLexer;
+				let EQLParser = require('EQLParser').EQLParser;
+				let EQLListener = require('EQLListener').EQLListener;
+				var ErrorListener = require('antlr4/error/ErrorListener').ErrorListener;
+				
+				var highlight_tokens = [];
+				var suggestions = [];
+				var currentFocus;
+				
+				function addHighlightToken(cssClass, eqlTokenText) {
+					highlight_tokens.push({
+						"cssClass": cssClass,
+						"eqlTokenText": eqlTokenText
+					});
+				}
+
+				var EQLGrammarErrorListener = function() {
+					antlr4.error.ErrorListener.call(this);
+					return this;
+				}
+				
+				EQLGrammarErrorListener.prototype = Object.create(antlr4.error.ErrorListener.prototype);
+				EQLGrammarErrorListener.constructor = EQLGrammarErrorListener;
+				EQLGrammarErrorListener.prototype.syntaxError = function(rec, sym, line, col, msg, e) {
+					console.log("errfunc: " + rec);
+					var parser = rec._ctx.parser;
+					var tokens = parser.getTokenStream().tokens;
+					var tokenText;
+					if (tokens.length > 1) {
+						var lastToken = tokens[tokens.length - 2];
+						tokenText = lastToken.text;
+					}
+					console.log("MSGMSGMSG: " + msg);
+					var open_bracket_index = msg.indexOf("{")+1;
+					var close_bracket_index = msg.indexOf("}");
+				
+					var os = msg.slice(open_bracket_index, close_bracket_index)
+						.replace(/\'/g, '')
+						.replace(/\s/g, '')
+						.split(",")
+						.filter(function(possible_suggestion) {
+							return possible_suggestion.startsWith(tokenText);
+						});
+					if (os.length > 0) suggestions = os;
+					console.log("suggestions now: " + suggestions);
+				}				
+
+				let SyntaxHighlighter = function () {
+					EQLListener.call(this);
+					return this;
+				}
+
+
+				SyntaxHighlighter.prototype = Object.create(EQLListener.prototype);
+				SyntaxHighlighter.prototype.exitString = function(ctx) {
+					addHighlightToken("eqlString", ctx.getText())
+				};
+				SyntaxHighlighter.prototype.exitEvent_type = function(ctx) {
+					console.log("exitEvent_type eqlEventType " + ctx.children[0].symbol.text);
+					addHighlightToken("eqlEventType", ctx.children[0].symbol.text);
+				};
+
+				SyntaxHighlighter.prototype.exitWhere = function(ctx) {
+					let symbolText = ctx.getText();
+					if (!symbolText.startsWith("<") && !symbolText.length == 0) { // I HAVE TO FIGURE OUT WHY === doesn't work here
+						// when they are both string classes and both values are ""
+						addHighlightToken("eqlWhere", symbolText);
+					}
+				};
+				SyntaxHighlighter.prototype.exitEquals = function(ctx) {
+					addHighlightToken("eqlEquals", ctx.getText());
+				}
+				
+				
+			
+			 	function handleInput() {
+					console.log("handleInput()");
+					let eqlQuery = document.getElementById("terminal").value;
+					parseEQL(eqlQuery);
+				}
+				
+				document.getElementById("terminal").addEventListener("keydown", function(e) {
+					console.log("input handler :" + e.keyCode);
+					var x = document.getElementById(this.id + "autocomplete-list");
+					if (x) x = x.getElementsByTagName("div");
+					if (e.keyCode == 40) {
+						/* down key */
+						e.preventDefault();
+						currentFocus++;
+						addActive(x);
+					} else if (e.keyCode == 38) {
+						/* up key */ 
+						e.preventDefault();
+						currentFocus--;
+						addActive(x);
+					} else if (e.keyCode == 13 || e.keyCode == 9) {
+						/* enter key or tab just autocomplete */
+						e.preventDefault();
+						if (currentFocus > -1) {
+							if (x) x[currentFocus].click();
+						}
+					} else if (e.keyCode == 18) {
+						/* alt key, we do nothing */
+						e.preventDefault();
+					}				
+				});
+
+				function htmlEntities(str) {
+					return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+				}
+				
+				function parseEQL(eqlQuery) {
+					console.log("parseEQL with eqlQuery: " + eqlQuery);
+					let highlights = document.getElementById("highlights");
+					let chars = new antlr4.InputStream(eqlQuery);
+					let lexer = new EQLLexer(chars);
+					let tokens = new antlr4.CommonTokenStream(lexer);
+					let parser = new EQLParser(tokens);
+					parser.buildParseTrees = true;
+					var error_listener = new EQLGrammarErrorListener();
+					parser.addErrorListener(error_listener);
+					var syntax_highlighter = new SyntaxHighlighter();
+					
+					let tree = parser.eql_query();
+					
+					highlight_tokens = [];
+					antlr4.tree.ParseTreeWalker.DEFAULT.walk(syntax_highlighter, tree);
+					console.log("highlight_tokens: " + highlight_tokens);
+					
+					highlights.innerHTML = highlight_tokens.map(function (inp) {
+						console.log("writing span for inp.cssClass: " + inp.cssClass + " and inp.eqlTokenText: " + inp.eqlTokenText);
+						return '<span class="' + inp.cssClass+'">'+ htmlEntities(inp.eqlTokenText) +' </span>'
+					}).join("");
+
+					const autosuggest = require('antlr4-autosuggest-js/autosuggest');
+					const autosuggester = autosuggest.autosuggester(EQLLexer, EQLParser, 'LOWER');
+					
+					let our_suggestions = autosuggester.autosuggest(eqlQuery);
+					if (our_suggestions.length > 0) suggestions = our_suggestions;
+					
+
+					let terminal = document.getElementById("terminal");
+					var a, b, i, val = terminal.value;
+					closeAllLists();
+					if (!val) { return false; }
+					currentFocus = -1;
+
+					a = document.createElement("DIV");
+					a.setAttribute("id", terminal.id + "autocomplete-list");
+					a.setAttribute("class", "autocomplete-items");
+					
+					terminal.parentNode.appendChild(a);
+					for (var i = 0; i < suggestions.length; i++) {
+						b = document.createElement("DIV");
+						b.innerHTML = "<strong>" + suggestions[i].substr(0, val.length) + "</strong>";
+						b.innerHTML += suggestions[i].substr(val.length);
+						b.innerHTML += "<input type='hidden' value='" + htmlEntities(suggestions[i]) + "'>";
+						b.innerHTML += '<span class="tooltiptext">' + lookupDocumentation(suggestions[i]) + '</span>';
+						b.addEventListener("click", function(e) {
+							var tmp = terminal.value.slice(0, terminal.value.lastIndexOf(" ")+1);
+							terminal.value = tmp + this.getElementsByTagName("input")[0].value + " ";
+							closeAllLists();
+						});
+						a.appendChild(b);
+					}
+					console.log("suggestions: " + suggestions);
+				}
+				document.addEventListener("click", function (e) {
+						closeAllLists(e.target);
+				});
+			</script>
+		</body>
+	</html>

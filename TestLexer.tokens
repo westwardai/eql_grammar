@@ -1,0 +1,8 @@
+PROCESS=1
+WHERE=2
+TRUE=3
+NEWLINE=4
+WS=5
+'process'=1
+'where'=2
+'true'=3

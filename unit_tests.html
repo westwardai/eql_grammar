@@ -1,0 +1,266 @@
+<!doctype html>
+	<html>
+		<head>
+			<script src="lib/require.js" type="text/javascript"> </script>
+		</head>
+		<body>
+			<script>	
+				let antlr4 = require('antlr4/index');
+				let EQLLexer = require('EQLLexer').EQLLexer;
+				let EQLParser = require('EQLParser').EQLParser;
+				let EQLListener = require('EQLListener').EQLListener;
+				var ErrorListener = require('antlr4/error/ErrorListener').ErrorListener;
+				function testValidExpressions() {
+					let passedTests = 0;
+					const valid_expressions = [
+						"1 == 1",
+						"false != (1 == 1)",
+						'abc != "ghi"',
+						"abc > 20",
+						"startsWith(abc, 'abc')",
+						"concat(a,b,c,d,)",
+						"a in (1,2,3,4,)",
+						"length(abc) < length(hij)",
+						"length(concat(abc))",
+						'abc == substring("abc", 1, 3)',
+						"1",
+						'(1)',
+						"true",
+						"false",
+						"null",
+						"not null",
+						"abc",
+						'"string"',
+						'abc and def',
+						'(1==abc) and def',
+						'abc == (1 and 2)',
+						'abc == (def and 2)',
+						'abc == (def and def)',
+						'abc == (def and ghi)',
+						'"\\b\\t\\r\\n\\f\\\\\\"\\\'"'
+					]
+					valid_expressions.forEach(function(validExpression) {
+						
+						var EQLGrammarErrorListener = function() {
+							antlr4.error.ErrorListener.call(this);
+							return this;
+						}
+						
+						let parseError = false;
+						
+						EQLGrammarErrorListener.prototype = Object.create(antlr4.error.ErrorListener.prototype);
+						EQLGrammarErrorListener.constructor = EQLGrammarErrorListener;
+						EQLGrammarErrorListener.prototype.syntaxError = function(rec, sym, line, col, msg, e) {
+							parseError = true;
+						}				
+
+						let chars = new antlr4.InputStream(validExpression);
+						let lexer = new EQLLexer(chars);
+						let tokens = new antlr4.CommonTokenStream(lexer);
+						let parser = new EQLParser(tokens);
+						var error_listener = new EQLGrammarErrorListener();
+						parser.buildParseTrees = true;
+						parser.addErrorListener(error_listener);
+						let tree = parser.expression();
+						
+						if (parseError === true) {
+							console.log("failed valid expression: '" + validExpression + "'");
+						} else {
+							console.log("passed valid expression: '" + validExpression + "'");
+							passedTests++;
+						}
+					});
+					console.log("Passed " + passedTests + "/" + valid_expressions.length + " expression tests.");
+				}
+				
+				function testInvalidExpressions() {
+					const nvalid_expressions = [
+						'',  // empty
+						'a xor b',  // made up comparator
+						'a ^ b',  // made up comparator
+						'a % "b"',  // made up comparator
+						'a b c d',  // missing syntax
+						'def[]',  // no index
+						'def[ghi]',  // index not a number
+						'def[-1]',  // negative indexes not supported
+						'someFunc().abc',  // invalid function
+						'length().abc',  // can't index these
+						'1.2.3',  // invalid number
+						'a.1',
+						'(field',  // unclosed paren
+						'(field xx',  // unclosed paren and bad syntax
+						'field[',  // unclosed bracket
+						'field[0',  // unclosed bracket
+						'(',
+						')',
+						'()',  // nothing inside
+						'',
+						'"invalid"string"',
+						'descendant of [event_type where true',
+						'--100',
+						'1000   100',
+						'""    100',
+						// literal values as fields and functions
+						'true.100',
+						'true()',
+						'null.abc',
+						'abc[0].null',
+						// require escape slashes,
+						'\\R',
+						'\\W',
+						// minimum of 1 argument
+						'length()',
+						'concat()',
+					];
+					let passedTests = 0;
+					invalid_expressions.forEach(function(invalidExpression) {
+						var EQLGrammarErrorListener = function() {
+							antlr4.error.ErrorListener.call(this);
+							return this;
+						}
+						
+						let parseError = false;
+						
+						EQLGrammarErrorListener.prototype = Object.create(antlr4.error.ErrorListener.prototype);
+						EQLGrammarErrorListener.constructor = EQLGrammarErrorListener;
+						EQLGrammarErrorListener.prototype.syntaxError = function(rec, sym, line, col, msg, e) {
+							parseError = true;
+						}				
+
+						let chars = new antlr4.InputStream(invalidExpression);
+						let lexer = new EQLLexer(chars);
+						let tokens = new antlr4.CommonTokenStream(lexer);
+						let parser = new EQLParser(tokens);
+						var error_listener = new EQLGrammarErrorListener();
+						parser.buildParseTrees = true;
+						parser.addErrorListener(error_listener);
+						let tree = parser.expression();
+						
+						if (parseError === true) {
+							console.log("passed invalid expression: '" + invalidExpression + "'");
+							passedTests++;
+						} else {
+							console.log("failed invalid expression: '" + invalidExpression + "'");
+						}
+					});
+					console.log("Passed " + passedTests + "/" + invalid_expressions.length + " bad expression tests.");
+				}
+				
+				function testValidQueries () {
+					let passedTests = 0;
+					const validQueries = [
+						'file where true',
+						'file where true and true',
+						'file where false or true',
+						'registry where not pid',
+						'process where process_name == "net.exe" and command_line == "* user*.exe"',
+						'process where command_line == "~!@#$%^&*();\'[]{}\\\\|<>?,./:\\"-= \' "',
+						'process where \n\n\npid ==\t 4',
+						'process where process_name in ("net.exe", "cmd.exe", "at.exe")',
+						'process where command_line == "*.exe *admin*" or command_line == "* a b*"',
+						'process where pid in (1,2,3,4,5,6,7,8) and abc == 100 and def == 200 and ghi == 300 and jkl == x',
+						'process where ppid != pid',
+						'module_load where not x != y',
+						'module_load where not x == y',
+						'module_load where not not not not x < y',
+						'module_load where not x <= y',
+						'module_load where not x >= y',
+						'module_load where not x > y',
+						'process where pid == 4 or pid == 5 or pid == 6 or pid == 7 or pid == 8',
+						'network where pid == 0 or pid == 4 or (ppid == 0 or ppid = 4) or (abc == defgh) and process_name == "*" ',
+						'network where pid = 4',
+						'process where descendant of [process where process_name == "lsass.exe"] and process_name == "cmd.exe"',
+						'join \t\t\t[process where process_name == "*"] [  file where file_path == "*"\n]',
+						'join by pid [process where name == "*"] [file where path == "*"] until [process where opcode == 2]',
+						'sequence [process where name == "*"] [file where path == "*"] until [process where opcode == 2]',
+						'sequence by pid [process where name == "*"] [file where path == "*"] until [process where opcode == 2]',
+						'join [process where process_name == "*"] by process_path [file where file_path == "*"] by image_path',
+						'sequence [process where process_name == "*"] by process_path [file where file_path == "*"] by image_path',
+						'sequence by pid [process where process_name == "*"] [file where file_path == "*"]',
+						'sequence by pid with maxspan=200 [process where process_name == "*" ] [file where file_path == "*"]',
+						'sequence by pid with maxspan=2s [process where process_name == "*" ] [file where file_path == "*"]',
+						'sequence by pid with maxspan=2sec [process where process_name == "*" ] [file where file_path == "*"]',
+						'sequence by pid with maxspan=2seconds [process where process_name == "*" ] [file where file_path == "*"]',
+						'sequence with maxspan=2.5m [process where x == x] by pid [file where file_path == "*"] by ppid',
+						'sequence by pid with maxspan=2.0h [process where process_name == "*"] [file where file_path == "*"]',
+						'sequence by pid with maxspan=2.0h [process where process_name == "*"] [file where file_path == "*"]',
+						'sequence by pid with maxspan=1.0075d [process where process_name == "*"] [file where file_path == "*"]',
+						'domain where pid == 100 | head 100 | tail 50 | unique pid',
+						'network where pid == 100 | unique command_line | count',
+						'security where user_domain == "endgame" | count user_name a b | tail 5',
+						'process where 1==1 | count user_name, unique_pid, concat(field2,a,bc)',
+						'process where 1==1 | unique user_name, concat(field2,a,bc), field2',
+						'registry where a.b',
+						'registry where a[0]',
+						'registry where a.b.c.d.e',
+						'registry where a.b.c[0]',
+						'registry where a[0].b',
+						'registry where a[0][1].b',
+						'registry where a[0].b[1]',
+						'registry where topField.subField[100].subsubField == 0',
+						'process where true | filter true',
+						'process where 1==1 | filter abc == def',
+						'process where 1==1 | filter abc == def and 1 != 2',
+						'process where 1==1 | count process_name | filter percent > 0.5',
+						'process where a > 100000000000000000000000000000000',
+						'any where true | unique a b c | sort a b c | count',
+						'any where true | unique a, b,   c | sort a b c | count',
+						'any where true | unique a, b,   c | sort a,b,c | count',
+						'file where child of [registry where true]',
+						'file where event of [registry where true]',
+						'file where event of [registry where true]',
+						'file where descendant of [registry where true]',
+						//# multiple by values
+						'sequence by field1  [file where true] by f1 [process where true] by f1',
+						'sequence by a,b,c,d [file where true] by f1,f2 [process where true] by f1,f2',
+						'sequence [file where 1] by f1,f2 [process where 1] by f1,f2 until [process where 1] by f1,f2',
+						'sequence by f [file where true] by a,b [process where true] by c,d until [process where 1] by e,f',
+						//# sequence with named params
+						'sequence by unique_pid [process where true] [file where true] fork',
+						'sequence by unique_pid [process where true] [file where true] fork=true',
+						'sequence by unique_pid [process where true] [file where true] fork=1',
+						'sequence by unique_pid [process where true] [file where true] fork=false',
+						'sequence by unique_pid [process where true] [file where true] fork=0 [network where true]',
+						'sequence by unique_pid [process where true] [file where true] fork=0',
+					];
+					
+					validQueries.forEach(function(validQuery) {
+						
+						var EQLGrammarErrorListener = function() {
+							antlr4.error.ErrorListener.call(this);
+							return this;
+						}
+						
+						let parseError = false;
+						
+						EQLGrammarErrorListener.prototype = Object.create(antlr4.error.ErrorListener.prototype);
+						EQLGrammarErrorListener.constructor = EQLGrammarErrorListener;
+						EQLGrammarErrorListener.prototype.syntaxError = function(rec, sym, line, col, msg, e) {
+							parseError = true;
+						}				
+
+						let chars = new antlr4.InputStream(validQuery);
+						let lexer = new EQLLexer(chars);
+						let tokens = new antlr4.CommonTokenStream(lexer);
+						let parser = new EQLParser(tokens);
+						var error_listener = new EQLGrammarErrorListener();
+						parser.buildParseTrees = true;
+						parser.addErrorListener(error_listener);
+						let tree = parser.eql_query();
+						
+						if (parseError === true) {
+							console.log("failed valid query: '" + validQuery + "'");
+						} else {
+							console.log("passed valid query: '" + validQuery + "'");
+							passedTests++;
+						}
+					});
+					console.log("Passed " + passedTests + "/" + validQueries.length + " valid query tests.");
+				}
+				
+				//testValidExpressions();
+				//testInvalidExpressions();
+				testValidQueries();
+			</script>
+		</body>
+	</html>

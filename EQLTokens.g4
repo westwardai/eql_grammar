@@ -1,7 +1,8 @@
 lexer grammar EQLTokens;
 
-
 WHERE: 'where';
+SEQUENCE: 'sequence';
+UNTIL: 'until';
 
 // event types
 PROCESS_CREATE: 'process_create';
@@ -18,6 +19,7 @@ REGISTRY: 'registry';
 PIPE: 'pipe';
 WMI: 'wmi';
 DOMAIN: 'domain';
+SECURITY: 'security';
 
 
 // EQL Functions
@@ -39,6 +41,18 @@ SUBSTRING: 'substring';
 SUBTRACT: 'subtract';
 WILDCARD: 'wildcard';
 
+// pipe commands
+COUNT: 'count';
+UNIQUE_COUNT: 'unique_count';
+UNIQUE: 'unique';
+FILTER: 'filter';
+HEAD: 'head';
+TAIL: 'tail';
+SORT: 'sort';
+
+
+WITH: 'with';
+
 TRUE: 'true';
 FALSE: 'false';
 
@@ -50,6 +64,7 @@ GTE: '>=';
 GT: '>';
 LB: '[';
 RB: ']';
+PIPE_SYMBOL: '|';
 
 EQUALS: '=';
 DOUBLE_EQUALS: '==';
@@ -63,25 +78,22 @@ OR: 'or';
 NOT: 'not';
 AND: 'and';
 
+ANY: 'any';
+
 IN: 'in';
 OF: 'of';
+BY: 'by';
 
-
-IDENT: [a-zA-Z][a-zA-Z0-9_]*;
-
-
-DECIMAL: [+-]?([0-9]+'.'[0-9]*|[0-9]*'.'[0-9]+)([Ee][-+]?[0-9]+)?;
+INTEGER: ([+\-])?[0-9]+;
+DECIMAL: ([+-])?([0-9]+'.'[0-9]*|[0-9]*'.'[0-9]+)([Ee][-+]?[0-9]+)?;
 UNSIGNED_INTEGER: [0-9]+;
-INTEGER: [+-]?[0-9]+;
 
 SINGLE_Q_STRING: '\'' ('\\'[btnfr"'\\]|~[\r\n"\\])* '\'';
 DOUBLE_Q_STRING: '"' ('\\'[btnfr"'\\]|~[\r\n"\\])* '"';
 
-
-
 SINGLE_Q_RAW_STRING: '?\'' ('\\'|~['])* '\'';
 DOUBLE_Q_RAW_STRING: '?"' ('\\"'|~["])* '"';
-
+IDENT: [a-zA-Z][a-zA-Z0-9_]*;
 DOT: '.';
 
 

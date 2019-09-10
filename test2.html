@@ -1,0 +1,37 @@
+<!doctype html>
+	<html>
+		<head>
+			<script src="lib/require.js" type="text/javascript"> </script>
+		</head>
+		<body>
+			<script>	
+				let antlr4 = require('antlr4/index');
+				let EQLLexer = require('EQLLexer').EQLLexer;
+				let EQLParser = require('EQLParser').EQLParser;
+				let EQLListener = require('EQLListener').EQLListener;
+				var ErrorListener = require('antlr4/error/ErrorListener').ErrorListener;
+				
+				var EQLGrammarErrorListener = function() {
+					antlr4.error.ErrorListener.call(this);
+					return this;
+				}
+				
+				EQLGrammarErrorListener.prototype = Object.create(antlr4.error.ErrorListener.prototype);
+				EQLGrammarErrorListener.constructor = EQLGrammarErrorListener;
+				EQLGrammarErrorListener.prototype.syntaxError = function(rec, sym, line, col, msg, e) {
+					console.log("errfunc: " + rec);
+				}				
+
+			
+				let eqlQuery = "p";
+				let chars = new antlr4.InputStream(eqlQuery);
+				let lexer = new EQLLexer(chars);
+				let tokens = new antlr4.CommonTokenStream(lexer);
+				let parser = new EQLParser(tokens);
+				var error_listener = new EQLGrammarErrorListener();
+				parser.buildParseTrees = true;
+				parser.addErrorListener(error_listener);
+				let tree = parser.eql_query();
+			</script>
+		</body>
+	</html>

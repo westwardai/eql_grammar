@@ -149,7 +149,7 @@ Parser.prototype.matchWildcard = function() {
 		this.consume();
 	} else {
 		t = this._errHandler.recoverInline(this);
-		if (this._buildParseTrees && t.tokenIndex === -1) {
+		if (this.buildParseTrees && t.tokenIndex === -1) {
 			// we must have conjured up a new token during single token
 			// insertion
 			// if it's not the current symbol

@@ -11,12 +11,21 @@ function EQLListener() {
 EQLListener.prototype = Object.create(antlr4.tree.ParseTreeListener.prototype);
 EQLListener.prototype.constructor = EQLListener;
 
-// Enter a parse tree produced by EQLParser#base_query.
-EQLListener.prototype.enterBase_query = function(ctx) {
+// Enter a parse tree produced by EQLParser#eql_query.
+EQLListener.prototype.enterEql_query = function(ctx) {
 };
 
-// Exit a parse tree produced by EQLParser#base_query.
-EQLListener.prototype.exitBase_query = function(ctx) {
+// Exit a parse tree produced by EQLParser#eql_query.
+EQLListener.prototype.exitEql_query = function(ctx) {
+};
+
+
+// Enter a parse tree produced by EQLParser#pipe_command.
+EQLListener.prototype.enterPipe_command = function(ctx) {
+};
+
+// Exit a parse tree produced by EQLParser#pipe_command.
+EQLListener.prototype.exitPipe_command = function(ctx) {
 };
 
 
@@ -29,6 +38,69 @@ EQLListener.prototype.exitSequence = function(ctx) {
 };
 
 
+// Enter a parse tree produced by EQLParser#by_values.
+EQLListener.prototype.enterBy_values = function(ctx) {
+};
+
+// Exit a parse tree produced by EQLParser#by_values.
+EQLListener.prototype.exitBy_values = function(ctx) {
+};
+
+
+// Enter a parse tree produced by EQLParser#named_params.
+EQLListener.prototype.enterNamed_params = function(ctx) {
+};
+
+// Exit a parse tree produced by EQLParser#named_params.
+EQLListener.prototype.exitNamed_params = function(ctx) {
+};
+
+
+// Enter a parse tree produced by EQLParser#named_param.
+EQLListener.prototype.enterNamed_param = function(ctx) {
+};
+
+// Exit a parse tree produced by EQLParser#named_param.
+EQLListener.prototype.exitNamed_param = function(ctx) {
+};
+
+
+// Enter a parse tree produced by EQLParser#time_unit.
+EQLListener.prototype.enterTime_unit = function(ctx) {
+};
+
+// Exit a parse tree produced by EQLParser#time_unit.
+EQLListener.prototype.exitTime_unit = function(ctx) {
+};
+
+
+// Enter a parse tree produced by EQLParser#expressions.
+EQLListener.prototype.enterExpressions = function(ctx) {
+};
+
+// Exit a parse tree produced by EQLParser#expressions.
+EQLListener.prototype.exitExpressions = function(ctx) {
+};
+
+
+// Enter a parse tree produced by EQLParser#argument.
+EQLListener.prototype.enterArgument = function(ctx) {
+};
+
+// Exit a parse tree produced by EQLParser#argument.
+EQLListener.prototype.exitArgument = function(ctx) {
+};
+
+
+// Enter a parse tree produced by EQLParser#until_clause.
+EQLListener.prototype.enterUntil_clause = function(ctx) {
+};
+
+// Exit a parse tree produced by EQLParser#until_clause.
+EQLListener.prototype.exitUntil_clause = function(ctx) {
+};
+
+
 // Enter a parse tree produced by EQLParser#event_query.
 EQLListener.prototype.enterEvent_query = function(ctx) {
 };
@@ -38,12 +110,39 @@ EQLListener.prototype.exitEvent_query = function(ctx) {
 };
 
 
+// Enter a parse tree produced by EQLParser#subquery_by.
+EQLListener.prototype.enterSubquery_by = function(ctx) {
+};
+
+// Exit a parse tree produced by EQLParser#subquery_by.
+EQLListener.prototype.exitSubquery_by = function(ctx) {
+};
+
+
+// Enter a parse tree produced by EQLParser#subquery.
+EQLListener.prototype.enterSubquery = function(ctx) {
+};
+
+// Exit a parse tree produced by EQLParser#subquery.
+EQLListener.prototype.exitSubquery = function(ctx) {
+};
+
+
 // Enter a parse tree produced by EQLParser#join.
 EQLListener.prototype.enterJoin = function(ctx) {
 };
 
 // Exit a parse tree produced by EQLParser#join.
 EQLListener.prototype.exitJoin = function(ctx) {
+};
+
+
+// Enter a parse tree produced by EQLParser#where.
+EQLListener.prototype.enterWhere = function(ctx) {
+};
+
+// Exit a parse tree produced by EQLParser#where.
+EQLListener.prototype.exitWhere = function(ctx) {
 };
 
 
@@ -188,15 +287,6 @@ EQLListener.prototype.enterNamed_subquery = function(ctx) {
 
 // Exit a parse tree produced by EQLParser#named_subquery.
 EQLListener.prototype.exitNamed_subquery = function(ctx) {
-};
-
-
-// Enter a parse tree produced by EQLParser#subquery.
-EQLListener.prototype.enterSubquery = function(ctx) {
-};
-
-// Exit a parse tree produced by EQLParser#subquery.
-EQLListener.prototype.exitSubquery = function(ctx) {
 };
 
 

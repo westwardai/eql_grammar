@@ -1,20 +1,76 @@
 grammar EQL;
 import EQLTokens;
 
-base_query:
-		sequence
-	|	event_query
-	|	join
+eql_query:
+				(event_query (PIPE_SYMBOL pipe_command)*)
+			|	join
+			|	sequence
+		
+;
+
+pipe_command:
+		COUNT (expressions)?
+	|	UNIQUE
+	|	FILTER expressions
+	|	UNIQUE_COUNT
+	|	HEAD INTEGER
+	|	TAIL INTEGER
+	|	SORT expression
 ;
 
 sequence:
+	SEQUENCE 
+		(by_values (WITH named_params)? | WITH named_params (by_values)?)?
+		subquery_by (subquery_by)* 
+		(until_clause)?
 ;
+
+by_values:
+		BY expressions
+;
+
+named_params:
+		(named_param)+
+;
+
+named_param:
+		IDENT (equals (time_unit | atom))?
+;
+
+time_unit:
+		(decimal | integer) IDENT
+;
+
+expressions:
+		argument (COMMA argument)* COMMA?
+;
+
+argument:
+		expression
+;
+
+until_clause:
+		UNTIL subquery_by
+;
+
 event_query:
-	event_type WHERE expression
+		event_type where expression
+;
+
+subquery_by:
+		subquery (named_params)? (by_values)?
+;
+
+subquery:
+		LB event_query RB
 ;
 
 join:
-	JOIN 
+	JOIN (by_values)? subquery_by (subquery_by)* until_clause?
+;
+
+where:
+	WHERE
 ;
 
 event_type:
@@ -32,6 +88,8 @@ event_type:
 	|	PIPE
 	|	WMI
 	|	DOMAIN
+	|	ANY
+	|	SECURITY
 ;
 
 expression:
@@ -90,39 +148,37 @@ in_set:
 ;
 
 set:
-	LPAREN expression RPAREN
+	LPAREN expression (COMMA expression)* COMMA* RPAREN
 ;
 
 value:
 		function_call
 	|	named_subquery
 	|	check_paren
+	|	atom
 ;
 
 function_call:
 		ADD LPAREN INTEGER COMMA RPAREN
 	|	ARRAY_CONTAINS LPAREN IDENT COMMA string RPAREN
 	|	ARRAY_SEARCH LPAREN IDENT COMMA IDENT COMMA expression RPAREN
-	|	CONCAT LPAREN (string | IDENT) (COMMA string | IDENT)* RPAREN
+	|	CONCAT LPAREN expression (COMMA expression)* COMMA? RPAREN
 	|	DIVIDE LPAREN INTEGER COMMA INTEGER RPAREN
 	|	ENDS_WITH LPAREN (string | IDENT) COMMA (string | IDENT) RPAREN
-	|	LENGTH LPAREN (string | IDENT) RPAREN
+	|	LENGTH LPAREN expression RPAREN
 	|	MODULO LPAREN (string | IDENT) COMMA (string | IDENT) RPAREN
 	|	MULTIPLY LPAREN INTEGER COMMA INTEGER RPAREN
 	|	NUMBER LPAREN string (COMMA INTEGER)* RPAREN
 	|	STARTS_WITH LPAREN (string | IDENT) COMMA (string | IDENT) RPAREN
 	|	STRING LPAREN value RPAREN
 	|	STRING_CONTAINS LPAREN (string | IDENT) COMMA (string | IDENT) RPAREN
+	|	SUBSTRING LPAREN expression COMMA integer COMMA integer RPAREN
 	|	SUBTRACT LPAREN (INTEGER | IDENT) COMMA (INTEGER | IDENT) RPAREN
 	|	WILDCARD LPAREN IDENT COMMA STRING (COMMA string)* RPAREN
 ;
 
 named_subquery:
 		IDENT OF subquery
-;
-
-subquery:
-		LB event_query RB
 ;
 
 check_paren:

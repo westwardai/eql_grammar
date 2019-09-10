@@ -7,28 +7,106 @@
 		<body>
 			<form autocomplete="off" action="/submit_query">
 				<div class="autocomplete" style="width:300px;">
-					<input type="text" id="terminal" onkeyup="keyupFunction()" placeholder="EQL query...">
+					<textarea id="terminal" rows="4" cols="50" placeholder="EQL query..."></textarea>
 				</div>
-				<input type="submit">
 			</form>
-			<script>
+			<script>	
 				var antlr4 = require('antlr4/index');
 				var EQLLexer = require('EQLLexer').EQLLexer;
 				var EQLParser = require('EQLParser').EQLParser;
 				var EQLListener = require('EQLListener').EQLListener;
 				var ErrorListener = require('antlr4/error/ErrorListener').ErrorListener;
-				var our_suggestions = [];
+				
+				var EQLGrammarErrorListener = function() {
+					antlr4.error.ErrorListener.call(this);
+					return this;
+				}
+				
+				var SyntaxHighlighter = function () {
+					EQLListener.call(this);
+					return this;
+				}
+				
+				SyntaxHighlighter.prototype = Object.create(EQLListener.prototype);
+				SyntaxHighlighter.prototype.exitString = function(ctx) {
+					console.log("exitString");
+				};
+				SyntaxHighlighter.prototype.exitEvent_type = function(ctx) {
+					console.log("exitEvent_type");
+
+				};
+				
+				EQLGrammarErrorListener.prototype = Object.create(antlr4.error.ErrorListener.prototype);
+				EQLGrammarErrorListener.constructor = EQLGrammarErrorListener;
+				EQLGrammarErrorListener.prototype.syntaxError = function(rec, sym, line, col, msg, e) {
+					console.log("errfunc: " + rec);
+					var parser = rec._ctx.parser;
+					var tokens = parser.getTokenStream().tokens;
+					var tokenText;
+					if (tokens.length > 1) {
+						var lastToken = tokens[tokens.length - 2];
+						tokenText = lastToken.text;
+					}
+				
+					var open_bracket_index = msg.indexOf("{")+1;
+					var close_bracket_index = msg.indexOf("}");
+				
+					var os = msg.slice(open_bracket_index, close_bracket_index)
+						.replace(/\'/g, '')
+						.replace(/\s/g, '')
+						.split(",")
+						.filter(function(possible_suggestion) {
+							return possible_suggestion.startsWith(tokenText);
+						});
+					if (os.length > 0) our_suggestions = os;
+				}			
+
 
 				function autocomplete(inp) {
 					console.log("autocomplete called with our_suggestions: " + our_suggestions);
 					var currentFocus;
 					inp.addEventListener("input", function(e) {
+						var input = document.getElementById("terminal").value;
+
+						var chars = new antlr4.InputStream(input);
+						var lexer = new EQLLexer(chars);
+						var tokens = new antlr4.CommonTokenStream(lexer)
+						var parser = new EQLParser(tokens);
+				
+
+						
+
+
+						var syntax_highlighter = new SyntaxHighlighter();
+						var error_listener = new EQLGrammarErrorListener();
+						parser.addErrorListener(error_listener);
+						
+						
+						
+					
+						parser.buildParseTrees = true;
+						var tree = parser.event_query();
+						console.log("tree: " + tree);
+						
+						antlr4.tree.ParseTreeWalker.DEFAULT.walk(syntax_highlighter, tree);
+						
+					
+						const autosuggest = require('antlr4-autosuggest-js/autosuggest');
+						const autosuggester = autosuggest.autosuggester(EQLLexer, EQLParser, 'LOWER');
+					
+						console.log("trying autosuggest with input: " + input);
+						let suggestions = autosuggester.autosuggest(input);
+						//our_suggestions = our_suggestions.concat(suggestions);
+						console.log("keypress our_suggestions was: " + our_suggestions);
+						if (suggestions.length > 0) our_suggestions = suggestions;
+						console.log("keypress our_suggestions is " + our_suggestions);
+											
 						var a, b, i, val = this.value;
 						closeAllLists();
 						if (!val) { return false; }
-						currentFocus = - 1;
+						currentFocus = -1;
 						
-						a = document.createElement("DIV");
+						a = document.createElement("div");
 						a.setAttribute("id", this.id + "autocomplete-list");
 						a.setAttribute("class", "autocomplete-items");
 						
@@ -50,14 +128,22 @@
 					});
 					
 					inp.addEventListener("keydown", function(e) {
+						console.log("event: " + event);
+						//alert("keydown");
+						console.log("keydown suggestions: " + our_suggestions);
 						var x = document.getElementById(this.id + "autocomplete-list");
+						console.log("x: " + x);
+						console.log("x type: " + typeof(x));
+						//console.log("x id: " + x.id);
 						if (x) x = x.getElementsByTagName("div");
 						if (e.keyCode == 40) {
 							/* down key */
+							e.preventDefault();
 							currentFocus++;
 							addActive(x);
 						} else if (e.keyCode == 38) {
 							/* up key */ 
+							e.preventDefault();
 							currentFocus--;
 							addActive(x);
 						} else if (e.keyCode == 13 || e.keyCode == 9) {
@@ -66,6 +152,9 @@
 							if (currentFocus > -1) {
 								if (x) x[currentFocus].click();
 							}
+						} else if (e.keyCode == 18) {
+							/* alt key, we do nothing */
+							e.preventDefault();
 						}
 					});
 					
@@ -73,7 +162,10 @@
 						if (!x) return false;
 						removeActive(x);
 						if (currentFocus >= x.length) currentFocus = 0;
-						if (currentFocus < 0) currentFocus (x.length - 1);
+						if (currentFocus < 0) currentFocus = (x.length - 1);
+						console.log("x length: " + x.length);
+						console.log("currentFocus: " + currentFocus);
+						console.log("type x[currentFocus]: " + x[currentFocus]);
 						x[currentFocus].classList.add("autocomplete-active");
 					}
 					
@@ -84,7 +176,8 @@
 					}
 					
 					function closeAllLists(elmnt) {
-						var x = document.getElementsByClassName("autocomplete-items");
+						
+						let x = document.getElementsByClassName("autocomplete-items");
 						for (var i = 0; i < x.length; i++) {
 							if (elmnt != x[i] && elmnt != inp) {	
 								x[i].parentNode.removeChild(x[i]);
@@ -93,73 +186,9 @@
 					}
 				
 					document.addEventListener("click", function (e) {
+						
 						closeAllLists(e.target);
 					});
-				}
-				
-				
-
-
-				function keyupFunction() {
-					var input;
-					our_suggestions = [];
-					input = document.getElementById("terminal").value;
-
-					var chars = new antlr4.InputStream(input);
-					var lexer = new EQLLexer(chars);
-					var tokens = new antlr4.CommonTokenStream(lexer)
-					var parser = new EQLParser(tokens);
-				
-					var EQLGrammarErrorListener = function(errors) {
-						antlr4.error.ErrorListener.call(this);
-						return this;
-					}
-
-					//EQLGrammarErrorListener.prototype = Object.create(ErrorListener.prototype);
-					//EQLGrammarErrorListener.prototype.constructor = EQLGrammarErrorListener;
-					EQLGrammarErrorListener.prototype = Object.create(antlr4.error.ErrorListener.prototype);
-					EQLGrammarErrorListener.constructor = EQLGrammarErrorListener;
-					EQLGrammarErrorListener.prototype.syntaxError = function(rec, sym, line, col, msg, e) {
-						console.log("errfunc: " + rec);
-						var parser = rec._ctx.parser;
-						var tokens = parser.getTokenStream().tokens;
-						var tokenText;
-						if (tokens.length > 1) {
-							var lastToken = tokens[tokens.length - 2];
-							tokenText = lastToken.text;
-						}
-						
-						var open_bracket_index = msg.indexOf("{")+1;
-						var close_bracket_index = msg.indexOf("}");
-						
-						var suggestions = msg.slice(open_bracket_index, close_bracket_index)
-							.replace(/\'/g, '')
-							.replace(/\s/g, '')
-							.split(",")
-							.filter(function(possible_suggestion) {
-								return possible_suggestion.startsWith(tokenText);
-							});
-						console.log("my suggestions " + suggestions);
-						our_suggestions = our_suggestions.concat(suggestions);
-					}
-					
-					
-					
-					var errors = [];
-					
-					var listener = new EQLGrammarErrorListener(errors);
-					parser.addErrorListener(listener);
-					
-					parser.buildParseTrees = true;
-					var tree = parser.event_query();
-					
-					const autosuggest = require('antlr4-autosuggest-js/autosuggest');
-					const autosuggester = autosuggest.autosuggester(EQLLexer, EQLParser, 'LOWER');
-					
-					
-					let suggestions = autosuggester.autosuggest(input);
-					our_suggestions = our_suggestions.concat(suggestions);
-					console.log("suggestions: " + suggestions);
 				}
 				autocomplete(document.getElementById("terminal"));
 			</script>

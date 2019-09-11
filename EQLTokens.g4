@@ -26,6 +26,7 @@ SECURITY: 'security';
 ADD: 'add';
 ARRAY_CONTAINS: 'arrayContains';
 ARRAY_SEARCH: 'arraySearch';
+ARRAY_COUNT: 'arrayCount';
 CONCAT: 'concat';
 DIVIDE: 'divide';
 ENDS_WITH: 'endsWith';
@@ -50,6 +51,9 @@ HEAD: 'head';
 TAIL: 'tail';
 SORT: 'sort';
 
+CHILD: 'child';
+DESCENDANT: 'descendant';
+EVENT: 'event';
 
 WITH: 'with';
 

@@ -148,6 +148,12 @@ public interface EQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitSub_term(EQLParser.Sub_termContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link EQLParser#relationship}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitRelationship(EQLParser.RelationshipContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link EQLParser#comparison}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

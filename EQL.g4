@@ -3,7 +3,7 @@ import EQLTokens;
 
 eql_query:
 				(event_query (PIPE_SYMBOL pipe_command)*)
-			|	join
+			|	(join (PIPE_SYMBOL pipe_command)*)
 			|	sequence
 		
 ;
@@ -123,6 +123,13 @@ sub_term:
 		comparison
 	|	in_set
 	|	value
+	|	relationship
+;
+
+relationship:
+		CHILD OF subquery
+	|	DESCENDANT OF subquery
+	|	EVENT OF subquery
 ;
 
 comparison:
@@ -162,6 +169,7 @@ function_call:
 		ADD LPAREN INTEGER COMMA RPAREN
 	|	ARRAY_CONTAINS LPAREN IDENT COMMA string RPAREN
 	|	ARRAY_SEARCH LPAREN IDENT COMMA IDENT COMMA expression RPAREN
+	|	ARRAY_COUNT LPAREN IDENT COMMA IDENT COMMA expression RPAREN
 	|	CONCAT LPAREN expression (COMMA expression)* COMMA? RPAREN
 	|	DIVIDE LPAREN INTEGER COMMA INTEGER RPAREN
 	|	ENDS_WITH LPAREN (string | IDENT) COMMA (string | IDENT) RPAREN

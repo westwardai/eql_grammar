@@ -1,10 +1,131 @@
 {
 	"process": {
-		"text": "process query",
+		"text": "The `process` event query enables an analyst process query",
 		"example": "process where true"
 	},
 	"where": {
-		"text": "The `where` statement is used to specify what criteria this query matches",
+		"text": "The `where` statement is used to specify what criteria this query matches.",
 		"example": "process where true"
+	},
+	"process_create": {
+		"text": "The `process_create` event query statement enables an analyst write EQL rules that detect one process creating another."
+	},
+	"file": {
+		"text": "The `file` event query enables an analyst to write EQL rules that detect file creation by a process."
+	},
+	"network": {
+		"text": "The `network` event query enables an analyst to write EQL rules to detect a processes' network activity."
+	},
+	"sysmon_service_state_changed": {
+		"text": "The `sysmon_service_state_changed` event query enables an analyst to write rules to detect sysmon service state changes."
+	},
+	"driver_load": {
+		"text": "The `driver_load` event query enables an analyst to write EQL rules to detect when kernel drivers are loaded."
+	},
+	"module_load": {
+		"text": "The `module_load` event query enables an analyst to write EQL rules to detect when Dynamically Linked Libraries (DLLs) are loaded into a process' address space."
+	},
+	"remote_thread": {
+		"text": "The `remote_thread` event query enables analysts to write EQL rules to detect when a process creates a remote thread in another process."
+	},
+	"raw_access_read": {
+		"text": "The `raw_access_read` event query enables analysts to write EQL rules that detect processes bypassing the file system APIs."
+	},
+	"process_access": {
+		"text": ""
+	},
+	"registry": {
+		"text": "The `registry` event query enables analysts to write EQL rules to detect Windows registry access by a process."
+	},
+	"pipe": {
+		"text": "The `pipe` event query enables analysts to write EQL rules to detect Windows process access to pipes."
+	},
+	"wmi": {
+		"text": "The `wmi` event query enables analysts to write EQL rules to detect Windows Management Instrumentation (WMI) usage by a process."
+	},
+	"domain": {
+		"text": "The `domain` event query enables analysts to write EQL rules to detect Domain Name Service (DNS) behavior by a process." 
+	},
+	"security": {
+		"text": "The `security` event query enables analysts to write EQL rules to query the Windows event log."
+	},
+	"any": {
+		"text": "The `any` event query enables analysts to write EQL rules to match on any of a combination of the other event query types."
+	},
+	"join": {
+		"text": "The `join` query enables analysts to join multiple subqueries together."
+	},
+	"sequence": {
+		"text": "The `sequence` query enables analysts correlate multiple events over a window of time."
+	},
+	"add": {
+		"text": "The `add` function sums two numeric values.",
+		"example: "add(1,2) -> 3"
+	},
+	"arrayContains": {
+		"text": "The `arrayContains` function checks to seee if some value exists inside an array.",
+	},
+	"arraySearch": {
+		"text": "The `arraySearch` function searches an array to see if a condition is true for any element in the array."
+	},
+	"arrayCount": {
+		"text": "The `arrayCount` function counts the number of elements that match a condition."
+	},
+	"concat": {
+		"text": "The `concat` function returns a concatenated string of all inptu values."
+	},
+	"divide": {
+		"text": "The `divide` function returns the quotient of the two divide parameters."
+	},
+	"endsWith": {
+		"text": "The `endsWith` function checks to see if the input string ends with the provided substring."
+	},
+	"length": {
+		"text": "The `length` function returns the length of the provided input string."
+	},
+	"modulo": {
+		"text": "The `modulo` function returns the remainder of a division."
+	},
+	"multiply": {
+		"text": "The `multiply` function returns the product of two numbers multiplied together."
+	},
+	"number": {
+		"text": "The `number` funciton converts a string into a number."
+	},
+	"startsWith": {
+		"text": "The `startsWith` function checks to see if the input string starts with the provided substring."
+	},
+	"string": {
+		"text": "The `string` function returns a string representation of the input value."
+	},
+	"stringContains": {
+		"text": "The `stringContains` function returns true the substring is contained within the string."
+	},
+	"subtract": {
+		"text": "The `subtract` function returns the difference of the two input numbers."
+	},
+	"wildcard": {
+		"text": "The `wildcard` function returns true if any of the wildcard strings match the input value."
+	},
+	"count": {
+		"text": "The `count` pipe command will return the total number of events in the stream. A list of field names can be passed to count to only sum events that have those field names."
+	},
+	"unique": {
+		"text": "The `unique` pipe command will return the first matching result through the pipe. A list of field names can be passed to unique to only have it return unique entries for that field." 
+	},
+	"filter": {
+		"text": "The `filter` pipe command will only return records that meet the expression passed to filter."
+	},
+	"unique_count": {
+		"text": "The `unique_count` pipe command combines the filtering of unique with the stats from count. For unique_count, the original event is returned but with the fields count and percent added."
+	},
+	"head": {
+		"text": "The `head` pipe command returns the first N number of events with N being the parameter passed to the head pipe command."
+	},
+	"tail": {
+		"text": "The `tail` pipe command returns the last N number of events with N being the parameter passed to the tail pipe command."
+	},
+	"sort": {
+		"text": "The `sort` pipe command will reorder incoming events through the pipe. An optional field name can be passed to sort to have it sort on that specific field."
 	}
 }

@@ -237,6 +237,16 @@ public interface EQLListener extends ParseTreeListener {
 	 */
 	void exitSub_term(EQLParser.Sub_termContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link EQLParser#relationship}.
+	 * @param ctx the parse tree
+	 */
+	void enterRelationship(EQLParser.RelationshipContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EQLParser#relationship}.
+	 * @param ctx the parse tree
+	 */
+	void exitRelationship(EQLParser.RelationshipContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link EQLParser#comparison}.
 	 * @param ctx the parse tree
 	 */

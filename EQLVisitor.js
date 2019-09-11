@@ -150,6 +150,12 @@ EQLVisitor.prototype.visitSub_term = function(ctx) {
 };
 
 
+// Visit a parse tree produced by EQLParser#relationship.
+EQLVisitor.prototype.visitRelationship = function(ctx) {
+  return this.visitChildren(ctx);
+};
+
+
 // Visit a parse tree produced by EQLParser#comparison.
 EQLVisitor.prototype.visitComparison = function(ctx) {
   return this.visitChildren(ctx);

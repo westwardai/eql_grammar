@@ -32,7 +32,7 @@
 		"text": "The `raw_access_read` event query enables analysts to write EQL rules that detect processes bypassing the file system APIs."
 	},
 	"process_access": {
-		"text": ""
+		"text": "The process accessed event reports when a process opens another process, an operation that's often followed by information queries or reading and writing the address space of the target process. This enables detection of hacking tools that read the memory contents of processes like Local Security Authority (Lsass.exe) in order to steal credentials for use in Pass-the-Hash attacks."
 	},
 	"registry": {
 		"text": "The `registry` event query enables analysts to write EQL rules to detect Windows registry access by a process."

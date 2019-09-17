@@ -2,27 +2,39 @@ grammar EQL;
 import EQLTokens;
 
 eql_query:
-				(event_query (PIPE_SYMBOL pipe_command)*)
-			|	(join (PIPE_SYMBOL pipe_command)*)
-			|	sequence
-		
+		base_query (PIPE_SYMBOL pipe_command)*
 ;
 
 pipe_command:
-		COUNT (expressions)?
+		pipe_name pipe_arguments?
+;
+
+pipe_arguments:
+		expressions
+	|	atom atom*
+;
+
+pipe_name:
+		COUNT
 	|	UNIQUE
-	|	FILTER expressions
+	|	FILTER
 	|	UNIQUE_COUNT
-	|	HEAD INTEGER
-	|	TAIL INTEGER
-	|	SORT expression
+	|	HEAD
+	|	TAIL
+	|	SORT
+;
+
+base_query:
+		sequence
+	|	join
+	|	event_query
 ;
 
 sequence:
-	SEQUENCE 
-		(by_values (WITH named_params)? | WITH named_params (by_values)?)?
-		subquery_by (subquery_by)* 
-		(until_clause)?
+		SEQUENCE
+			(by_values (WITH named_params)? | WITH named_params (by_values)?)?
+			subquery_by (subquery_by)*
+			(until_clause)?
 ;
 
 by_values:
@@ -123,13 +135,6 @@ sub_term:
 		comparison
 	|	in_set
 	|	value
-	|	relationship
-;
-
-relationship:
-		CHILD OF subquery
-	|	DESCENDANT OF subquery
-	|	EVENT OF subquery
 ;
 
 comparison:
@@ -166,32 +171,38 @@ value:
 ;
 
 function_call:
-		ADD LPAREN INTEGER COMMA RPAREN
-	|	ARRAY_CONTAINS LPAREN IDENT COMMA string RPAREN
-	|	ARRAY_SEARCH LPAREN IDENT COMMA IDENT COMMA expression RPAREN
-	|	ARRAY_COUNT LPAREN IDENT COMMA IDENT COMMA expression RPAREN
-	|	CONCAT LPAREN expression (COMMA expression)* COMMA? RPAREN
-	|	DIVIDE LPAREN INTEGER COMMA INTEGER RPAREN
-	|	ENDS_WITH LPAREN (string | IDENT) COMMA (string | IDENT) RPAREN
-	|	LENGTH LPAREN expression RPAREN
-	|	MODULO LPAREN (string | IDENT) COMMA (string | IDENT) RPAREN
-	|	MULTIPLY LPAREN INTEGER COMMA INTEGER RPAREN
-	|	NUMBER LPAREN string (COMMA INTEGER)* RPAREN
-	|	STARTS_WITH LPAREN (string | IDENT) COMMA (string | IDENT) RPAREN
-	|	STRING LPAREN value RPAREN
-	|	STRING_CONTAINS LPAREN (string | IDENT) COMMA (string | IDENT) RPAREN
-	|	SUBSTRING LPAREN expression COMMA integer COMMA integer RPAREN
-	|	SUBTRACT LPAREN (INTEGER | IDENT) COMMA (INTEGER | IDENT) RPAREN
-	|	WILDCARD LPAREN IDENT COMMA STRING (COMMA string)* RPAREN
+		function_name LPAREN expressions* RPAREN
+;
+
+function_name:
+		ADD
+	|	ARRAY_CONTAINS
+	|	ARRAY_SEARCH
+	|	ARRAY_COUNT
+	|	CONCAT
+	|	DIVIDE
+	|	ENDS_WITH
+	|	LENGTH
+	|	INDEX_OF
+	|	MODULO
+	|	MULTIPLY
+	|	NUMBER
+	|	STARTS_WITH
+	|	STRING
+	|	STRING_CONTAINS
+	|	SUBSTRING
+	|	SUBTRACT
+	|	WILDCARD
 ;
 
 named_subquery:
-		IDENT OF subquery
+		CHILD OF subquery
+	|	DESCENDANT OF subquery
+	|	EVENT OF subquery
 ;
 
 check_paren:
 		LPAREN expression RPAREN
-	|	atom
 ;
 
 atom:
@@ -201,17 +212,14 @@ atom:
 ;
 
 field:
-		IDENT sub_field?
+		field DOT IDENT
+	|	field LB integer RB
+	|	IDENT
 ;
 
 bool:
 		TRUE
 	|	FALSE
-;
-
-sub_field:
-		DOT IDENT
-	|	LB unsigned_integer RB
 ;
 
 literal:
@@ -227,10 +235,6 @@ decimal:
 
 integer:
 		INTEGER
-;
-
-unsigned_integer:
-		UNSIGNED_INTEGER
 ;
 
 string:

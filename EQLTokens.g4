@@ -90,12 +90,11 @@ BY: 'by';
 
 INTEGER: ([+\-])?[0-9]+;
 DECIMAL: ([+-])?([0-9]+'.'[0-9]*|[0-9]*'.'[0-9]+)([Ee][-+]?[0-9]+)?;
-UNSIGNED_INTEGER: [0-9]+;
 
-SINGLE_Q_STRING: '\'' ('\\'[btnfr"'\\]|~[\r\n"\\])* '\'';
+SINGLE_Q_STRING: '\'' ('\\'[btnfr"'\\]|~[\r\n'\\])* '\'';
 DOUBLE_Q_STRING: '"' ('\\'[btnfr"'\\]|~[\r\n"\\])* '"';
 
-SINGLE_Q_RAW_STRING: '?\'' ('\\'|~['])* '\'';
+SINGLE_Q_RAW_STRING: '?\'' ('\\\''|~['])* '\'';
 DOUBLE_Q_RAW_STRING: '?"' ('\\"'|~["])* '"';
 IDENT: [a-zA-Z][a-zA-Z0-9_]*;
 DOT: '.';
